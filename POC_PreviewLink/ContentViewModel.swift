@@ -10,33 +10,46 @@ import SwiftUI
 import LinkPresentation
 import UniformTypeIdentifiers
 
+struct PreviewLink: Identifiable {
+    let id: UUID = UUID()
+    var image: UIImage?
+    let title: String?
+    let url: String?
+}
+
 final class ContentViewModel: ObservableObject {
     
-    @Published var image: UIImage?
-    @Published var title: String?
-    @Published var url: String?
+    @Published var previews: [PreviewLink] = []
+    @Published var previewURLs: [String] = [
+        "https://apps.apple.com/fr/app/cashflow-suivi-des-d%C3%A9penses/id6450913423",
+        "https://split-app.fr/",
+        "https://github.com/theosementa"
+    ]
     
-    let previewURL: URL?
-    
-    init(_ url: String) {
-        self.previewURL = URL(string: url)
-        fetchMetadata()
-    }
 }
 
 extension ContentViewModel {
     
-    private func fetchMetadata() {
-        guard let previewURL else { return }
-        let provider = LPMetadataProvider()
-        
-        Task {
-            let metadata = try await provider.startFetchingMetadata(for: previewURL)
+    func fetchMetadata() {
+        for url in previewURLs {
+            guard let previewURL = URL(string: url) else { return }
+            let provider = LPMetadataProvider()
             
-            image = try await convertToImage(metadata.imageProvider)
-            title = metadata.title
-            
-            url = metadata.url?.host()
+            Task {
+                let metadata = try await provider.startFetchingMetadata(for: previewURL)
+                
+                let image = try await convertToImage(metadata.imageProvider)
+                let title = metadata.title
+                let url = metadata.url?.host()
+                
+                previews.append(
+                    .init(
+                        image: image,
+                        title: title,
+                        url: url
+                    )
+                )
+            }
         }
     }
     
