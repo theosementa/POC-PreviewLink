@@ -54,34 +54,24 @@ extension ContentViewModel {
     }
     
     private func convertToImage(_ imageProvider: NSItemProvider?) async throws -> UIImage? {
-        var image: UIImage?
+        guard let imageProvider else { return nil }
         
-        if let imageProvider {
-            let type = String(describing: UTType.image)
-            
-            if imageProvider.hasItemConformingToTypeIdentifier(type) {
-                let item = try await imageProvider.loadItem(forTypeIdentifier: type)
-                
-                if item is UIImage {
-                    image = item as? UIImage
-                }
-                
-                if item is URL {
-                    guard let url = item as? URL,
-                          let data = try? Data(contentsOf: url) else { return nil }
-                    
-                    image = UIImage(data: data)
-                }
-                
-                if item is Data {
-                    guard let data = item as? Data else { return nil }
-                    
-                    image = UIImage(data: data)
-                }
-            }
+        let type = String(describing: UTType.image)
+        guard imageProvider.hasItemConformingToTypeIdentifier(type) else { return nil }
+        
+        let item = try await imageProvider.loadItem(forTypeIdentifier: type)
+        
+        switch item {
+        case let image as UIImage:
+            return image
+        case let url as URL:
+            let data = try? Data(contentsOf: url)
+            return data.flatMap(UIImage.init)
+        case let data as Data:
+            return UIImage(data: data)
+        default:
+            return nil
         }
-        
-        return image
     }
     
 }
