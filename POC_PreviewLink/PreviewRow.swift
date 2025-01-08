@@ -12,6 +12,8 @@ struct PreviewRow: View {
     // Builder
     var preview: PreviewLink
     
+    @State private var widthSize: CGFloat = 0
+    
     // MARK: -
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -20,8 +22,8 @@ struct PreviewRow: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(
-                        width: UIScreen.main.bounds.width / 2 - 24,
-                        height: UIScreen.main.bounds.width / 2 - 24
+                        width: widthSize,
+                        height: widthSize
                     )
                     .clipped()
             }
@@ -44,6 +46,8 @@ struct PreviewRow: View {
             }
             .padding([.horizontal, .bottom])
         }
+        .frame(maxWidth: .infinity)
+        .onGetWidth { widthSize = $0 }
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .background {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
